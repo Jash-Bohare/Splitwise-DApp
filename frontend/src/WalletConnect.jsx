@@ -1,11 +1,11 @@
+// WalletConnect.jsx
 import React, { useState } from "react";
 import { ethers } from "ethers";
 
-export default function WalletConnect() {
+export default function WalletConnect({ onConnect }) {
   const [walletAddress, setWalletAddress] = useState(null);
   const [balance, setBalance] = useState(null);
 
-  // Function to connect wallet
   const connectWallet = async () => {
     try {
       if (!window.ethereum) {
@@ -13,17 +13,20 @@ export default function WalletConnect() {
         return;
       }
 
-      // Request account access
       const [account] = await window.ethereum.request({ method: "eth_requestAccounts" });
       setWalletAddress(account);
 
-      // Create provider
       const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
 
-      // Get balance (in ETH first)
       const rawBalance = await provider.getBalance(account);
       const formattedBalance = ethers.formatEther(rawBalance);
       setBalance(formattedBalance);
+
+      // ✅ THIS IS CRUCIAL
+      if (onConnect) {
+        onConnect(provider, signer);
+      }
 
     } catch (err) {
       console.error(err);
